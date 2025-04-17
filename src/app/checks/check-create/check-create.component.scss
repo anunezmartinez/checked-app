@@ -1,0 +1,88 @@
+/* src/app/checks/check-create/check-create.component.scss */
+.check-create-container {
+    padding: 1rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    h1 {
+      margin: 0;
+      margin-left: 0.5rem;
+      font-weight: 500;
+    }
+  }
+  
+  .form-container {
+    mat-card {
+      border-radius: 8px;
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .custom-periodicity {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    
+    mat-form-field {
+      flex: 1;
+    }
+  }
+  
+  .notification-option {
+    display: flex;
+    flex-direction: column;
+    margin: 1.5rem 0;
+    
+    .notification-hint {
+      margin-top: 0.25rem;
+      font-size: 0.8rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+  
+  mat-card-actions {
+    padding: 1rem;
+    
+    button {
+      min-width: 120px;
+    }
+  }
+  
+  .button-spinner {
+    margin: 0 auto;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .custom-periodicity {
+      flex-direction: column;
+      gap: 0;
+    }
+    
+    mat-card-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }

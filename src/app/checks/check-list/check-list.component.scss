@@ -1,0 +1,155 @@
+/* src/app/checks/check-list/check-list.component.scss */
+.check-list-container {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    
+    h1 {
+      margin: 0;
+      font-weight: 500;
+    }
+  }
+  
+  .loading-container, .error-container, .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem;
+    margin: 1rem 0;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+    
+    p {
+      margin-top: 1rem;
+      color: rgba(0, 0, 0, 0.6);
+    }
+  }
+  
+  .error-container {
+    border: 1px solid rgba(255, 0, 0, 0.1);
+    
+    mat-icon {
+      font-size: 2rem;
+      height: 2rem;
+      width: 2rem;
+    }
+  }
+  
+  .empty-state {
+    .large-icon {
+      font-size: 4rem;
+      height: 4rem;
+      width: 4rem;
+      margin-bottom: 1rem;
+    }
+    
+    h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    
+    button {
+      margin-top: 1.5rem;
+    }
+  }
+  
+  .section {
+    margin-bottom: 2.5rem;
+    
+    h2 {
+      margin-bottom: 1rem;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.7);
+    }
+  }
+  
+  .check-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .check-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    &.due {
+      border-left: 4px solid #f44336;
+    }
+    
+    &.upcoming {
+      border-left: 4px solid #4caf50;
+    }
+  }
+  
+  .due-badge, .upcoming-badge {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    margin-left: auto;
+  }
+  
+  .due-badge {
+    background-color: rgba(244, 67, 54, 0.1);
+    color: #f44336;
+  }
+  
+  .upcoming-badge {
+    background-color: rgba(76, 175, 80, 0.1);
+    color: #4caf50;
+  }
+  
+  .last-checked {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: rgba(0, 0, 0, 0.6);
+    
+    mat-icon {
+      font-size: 1rem;
+      height: 1rem;
+      width: 1rem;
+      margin-right: 0.25rem;
+    }
+  }
+  
+  mat-card-content {
+    padding-bottom: 0.5rem;
+    
+    p {
+      margin-top: 0.5rem;
+      margin-bottom: 0;
+    }
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 600px) {
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      
+      button {
+        margin-top: 1rem;
+        align-self: stretch;
+      }
+    }
+    
+    .check-cards {
+      grid-template-columns: 1fr;
+    }
+  }

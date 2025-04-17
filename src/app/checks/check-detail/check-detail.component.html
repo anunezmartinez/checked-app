@@ -1,0 +1,172 @@
+<!-- src/app/checks/check-detail/check-detail.component.html -->
+<div class="check-detail-container">
+    <div class="header">
+      <button mat-icon-button (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1 *ngIf="!loading && check">{{ check.name }}</h1>
+      <div class="spacer"></div>
+      <button 
+        *ngIf="!loading && check && !editing" 
+        mat-icon-button 
+        color="primary" 
+        (click)="toggleEdit()">
+        <mat-icon>edit</mat-icon>
+      </button>
+    </div>
+  
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading check details...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-container">
+      <mat-icon color="warn">error</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-button color="primary" (click)="goBack()">Back to Checks</button>
+    </div>
+  
+    <div *ngIf="!loading && !error && check" class="content-container">
+      <!-- View mode -->
+      <div *ngIf="!editing" class="view-mode">
+        <mat-card>
+          <mat-card-content>
+            <div class="status-section" [ngClass]="{'due': isDue(), 'upcoming': !isDue()}">
+              <div class="status-info">
+                <div class="status-label">
+                  <mat-icon *ngIf="isDue()">notifications_active</mat-icon>
+                  <mat-icon *ngIf="!isDue()">schedule</mat-icon>
+                  <span *ngIf="isDue()">Due Now</span>
+                  <span *ngIf="!isDue()">Next check due in {{ getNextDueTime() }}</span>
+                </div>
+                <div class="last-checked">
+                  Last checked: {{ getLastCheckedString() }}
+                </div>
+              </div>
+              <div class="action-button">
+                <button 
+                  mat-raised-button 
+                  [color]="isDue() ? 'accent' : 'primary'"
+                  (click)="recordCheck()">
+                  Mark as Done
+                </button>
+              </div>
+            </div>
+  
+            <div class="check-info">
+              <div class="info-item" *ngIf="check.description">
+                <h3>Description</h3>
+                <p>{{ check.description }}</p>
+              </div>
+  
+              <div class="info-item">
+                <h3>Frequency</h3>
+                <p>Every {{ getPeriodicityString() }}</p>
+              </div>
+  
+              <div class="info-item">
+                <h3>Notifications</h3>
+                <p>{{ check.notification_enabled ? 'Enabled' : 'Disabled' }}</p>
+              </div>
+  
+              <div class="info-item">
+                <h3>Created on</h3>
+                <p>{{ check.created_at | date:'medium' }}</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+  
+      <!-- Edit mode -->
+      <div *ngIf="editing" class="edit-mode">
+        <form [formGroup]="checkForm" (ngSubmit)="onSubmit()">
+          <mat-card>
+            <mat-card-content>
+              <!-- Check name -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Check Name</mat-label>
+                <input matInput formControlName="name" placeholder="e.g. Take Medication">
+                <mat-error *ngIf="checkForm.get('name')?.errors?.['required']">
+                  Name is required
+                </mat-error>
+                <mat-error *ngIf="checkForm.get('name')?.errors?.['maxlength']">
+                  Name must be at most 50 characters
+                </mat-error>
+              </mat-form-field>
+  
+              <!-- Description -->
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description (Optional)</mat-label>
+                <textarea matInput formControlName="description" placeholder="Add details about this check"></textarea>
+                <mat-error *ngIf="checkForm.get('description')?.errors?.['maxlength']">
+                  Description must be at most 200 characters
+                </mat-error>
+              </mat-form-field>
+  
+              <!-- Periodicity -->
+              <h3>How often do you need to check this?</h3>
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Check Frequency</mat-label>
+                <mat-select formControlName="periodicity">
+                  <mat-option *ngFor="let option of periodicityOptions" [value]="option.value">
+                    {{ option.label }}
+                  </mat-option>
+                  <mat-option value="custom">Custom...</mat-option>
+                </mat-select>
+              </mat-form-field>
+  
+              <!-- Custom periodicity (shown only if custom is selected) -->
+              <div *ngIf="customPeriodicity" class="custom-periodicity">
+                <mat-form-field appearance="outline">
+                  <mat-label>Value</mat-label>
+                  <input matInput formControlName="customPeriodicityValue" type="number" min="1">
+                  <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['required']">
+                    Value is required
+                  </mat-error>
+                  <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['min']">
+                    Value must be at least 1
+                  </mat-error>
+                  <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['pattern']">
+                    Value must be a whole number
+                  </mat-error>
+                </mat-form-field>
+  
+                <mat-form-field appearance="outline">
+                  <mat-label>Unit</mat-label>
+                  <mat-select formControlName="customPeriodicityUnit">
+                    <mat-option value="minutes">Minutes</mat-option>
+                    <mat-option value="hours">Hours</mat-option>
+                    <mat-option value="days">Days</mat-option>
+                    <mat-option value="weeks">Weeks</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+  
+              <!-- Notifications -->
+              <div class="notification-option">
+                <mat-slide-toggle formControlName="notification_enabled" color="primary">
+                  Send notifications
+                </mat-slide-toggle>
+                <span class="notification-hint">
+                  You'll get a notification when this check is due
+                </span>
+              </div>
+            </mat-card-content>
+  
+            <mat-card-actions align="end">
+              <button mat-button type="button" (click)="toggleEdit()">Cancel</button>
+              <button 
+                mat-raised-button 
+                color="primary" 
+                type="submit"
+                [disabled]="checkForm.invalid || submitting">
+                <mat-spinner *ngIf="submitting" diameter="20" class="button-spinner"></mat-spinner>
+                <span *ngIf="!submitting">Save Changes</span>
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </form>
+      </div>
+    </div>
+  </div>

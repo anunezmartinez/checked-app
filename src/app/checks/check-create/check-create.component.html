@@ -1,0 +1,101 @@
+<!-- src/app/checks/check-create/check-create.component.html -->
+<div class="check-create-container">
+    <div class="header">
+      <button mat-icon-button (click)="cancel()">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>Create a New Check</h1>
+    </div>
+  
+    <div class="form-container">
+      <form [formGroup]="checkForm" (ngSubmit)="onSubmit()">
+        <mat-card>
+          <mat-card-content>
+            <!-- Check name -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Check Name</mat-label>
+              <input matInput formControlName="name" placeholder="e.g. Take Medication">
+              <mat-hint>Give your check a clear, concise name</mat-hint>
+              <mat-error *ngIf="checkForm.get('name')?.errors?.['required']">
+                Name is required
+              </mat-error>
+              <mat-error *ngIf="checkForm.get('name')?.errors?.['maxlength']">
+                Name must be at most 50 characters
+              </mat-error>
+            </mat-form-field>
+  
+            <!-- Description -->
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Description (Optional)</mat-label>
+              <textarea matInput formControlName="description" placeholder="Add details about this check"></textarea>
+              <mat-hint>Add any additional details about this check</mat-hint>
+              <mat-error *ngIf="checkForm.get('description')?.errors?.['maxlength']">
+                Description must be at most 200 characters
+              </mat-error>
+            </mat-form-field>
+  
+            <!-- Periodicity -->
+            <h3>How often do you need to check this?</h3>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Check Frequency</mat-label>
+              <mat-select formControlName="periodicity">
+                <mat-option *ngFor="let option of periodicityOptions" [value]="option.value">
+                  {{ option.label }}
+                </mat-option>
+                <mat-option value="custom">Custom...</mat-option>
+              </mat-select>
+            </mat-form-field>
+  
+            <!-- Custom periodicity (shown only if custom is selected) -->
+            <div *ngIf="customPeriodicity" class="custom-periodicity">
+              <mat-form-field appearance="outline">
+                <mat-label>Value</mat-label>
+                <input matInput formControlName="customPeriodicityValue" type="number" min="1">
+                <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['required']">
+                  Value is required
+                </mat-error>
+                <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['min']">
+                  Value must be at least 1
+                </mat-error>
+                <mat-error *ngIf="checkForm.get('customPeriodicityValue')?.errors?.['pattern']">
+                  Value must be a whole number
+                </mat-error>
+              </mat-form-field>
+  
+              <mat-form-field appearance="outline">
+                <mat-label>Unit</mat-label>
+                <mat-select formControlName="customPeriodicityUnit">
+                  <mat-option value="minutes">Minutes</mat-option>
+                  <mat-option value="hours">Hours</mat-option>
+                  <mat-option value="days">Days</mat-option>
+                  <mat-option value="weeks">Weeks</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+  
+            <!-- Notifications -->
+            <div class="notification-option">
+              <mat-slide-toggle formControlName="notification_enabled" color="primary">
+                Send notifications
+              </mat-slide-toggle>
+              <span class="notification-hint">
+                You'll get a notification when this check is due
+              </span>
+            </div>
+          </mat-card-content>
+  
+          <mat-card-actions align="end">
+            <button mat-button type="button" (click)="cancel()">Cancel</button>
+            <button 
+              mat-raised-button 
+              color="primary" 
+              type="submit"
+              [disabled]="checkForm.invalid || loading">
+              <mat-spinner *ngIf="loading" diameter="20" class="button-spinner"></mat-spinner>
+              <span *ngIf="!loading">Create Check</span>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </form>
+    </div>
+  </div>

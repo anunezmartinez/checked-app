@@ -1,0 +1,103 @@
+<!-- src/app/checks/check-list/check-list.component.html -->
+<div class="check-list-container">
+  <div class="header">
+    <h1>Your Checks</h1>
+    <button mat-raised-button color="primary" (click)="createCheck()">
+      <mat-icon>add</mat-icon> New Check
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your checks...</p>
+  </div>
+
+  <div *ngIf="error" class="error-container">
+    <mat-icon color="warn">error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-button color="primary" (click)="loadChecks()">Try Again</button>
+  </div>
+  <div *ngIf="!loading && !error" class="checks-container">
+    <ng-container *ngIf="(checks?.length ?? 0) > 0; else noChecks">
+       Due checks section 
+      <div class="section">
+        <h2>Due Checks</h2>
+        <div class="check-cards">
+          <mat-card 
+            *ngFor="let check of getDueChecks()" 
+            class="check-card due"
+            (click)="navigateToDetail(check)">
+            <mat-card-header>
+              <mat-card-title>{{ check.name }}</mat-card-title>
+              <span class="due-badge">Due Now</span>
+            </mat-card-header>
+            <mat-card-content>
+              <p *ngIf="check.description">{{ check.description }}</p>
+              <div class="last-checked">
+                <mat-icon>schedule</mat-icon>
+                <span>Last checked: {{ getLastCheckedString(check) }}</span>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button 
+                mat-raised-button 
+                color="accent" 
+                (click)="recordCheck(check, $event)">
+                Mark as Done
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+        <div *ngIf="getDueChecks().length === 0" class="empty-state">
+          <mat-icon color="primary">check_circle</mat-icon>
+          <p>All caught up! No checks due right now.</p>
+        </div>
+      </div>
+
+       Upcoming checks section
+      <div class="section">
+        <h2>Upcoming Checks</h2>
+        <div class="check-cards">
+          <mat-card 
+            *ngFor="let check of getUpcomingChecks()" 
+            class="check-card upcoming"
+            (click)="navigateToDetail(check)">
+            <mat-card-header>
+              <mat-card-title>{{ check.name }}</mat-card-title>
+              <span class="upcoming-badge">Due in {{ getNextDueTime(check) }}</span>
+            </mat-card-header>
+            <mat-card-content>
+              <p *ngIf="check.description">{{ check.description }}</p>
+              <div class="last-checked">
+                <mat-icon>schedule</mat-icon>
+                <span>Last checked: {{ getLastCheckedString(check) }}</span>
+              </div>
+            </mat-card-content>
+            <mat-card-actions>
+              <button 
+                mat-raised-button 
+                (click)="recordCheck(check, $event)">
+                Mark as Done
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+        <div *ngIf="getUpcomingChecks().length === 0" class="empty-state">
+          <mat-icon>event_busy</mat-icon>
+          <p>No upcoming checks scheduled.</p>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #noChecks>
+      <div class="empty-state">
+        <mat-icon color="primary" class="large-icon">add_task</mat-icon>
+        <h3>No checks yet</h3>
+        <p>Create your first check to start tracking your tasks</p>
+        <button mat-raised-button color="primary" (click)="createCheck()">
+          Create Your First Check
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</div> 
