@@ -1,0 +1,6 @@
+<mat-form-field appearance="outline" class="full-width">
+    <mat-label>Create New Group</mat-label>
+    <input matInput [(ngModel)]="groupName" (keyup.enter)="createGroup()" />
+  </mat-form-field>
+  <button mat-raised-button color="accent" (click)="createGroup()">Add Group</button>
+  

@@ -9,4 +9,5 @@ export interface Check {
   notification_enabled: boolean;
   user_id: string;
   history?: string[]; // Array of ISO date strings for check history
+  group?: string; // Optional group field
 }

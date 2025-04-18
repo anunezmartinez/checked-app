@@ -1,12 +1,11 @@
 // src/app/checks/check-list/check-list.component.ts
-import { Component, OnInit, OnDestroy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Check } from '../models/check.model';
 import { CheckService } from '../check.service';
 import { NotificationService } from '../../core/notification.service';
 import { interval, Subscription } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
-
 
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,11 +15,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
   selector: 'app-check-list',
   templateUrl: './check-list.component.html',
   styleUrls: ['./check-list.component.scss'],
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -29,14 +31,19 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatInputModule,
     MatIconModule,
     MatButtonModule,
-    MatProgressSpinnerModule
-]
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatOptionModule
+  ]
 })
 export class CheckListComponent implements OnInit, OnDestroy {
   checks: Check[] = [];
+  filteredChecks: Check[] = [];
+  groups: string[] = [];
+  selectedGroup: string | null = null;
   loading = true;
   error = '';
-  refreshInterval = 60000; // 1 minute in milliseconds
+  refreshInterval = 60000;
   private refreshSubscription?: Subscription;
 
   constructor(
@@ -50,7 +57,6 @@ export class CheckListComponent implements OnInit, OnDestroy {
     this.loadChecks();
     this.setupAutoRefresh();
 
-    // Start notification service with our getDueChecks function
     this.notificationService.startCheckingForDueChecks(() => this.getDueChecks());
   }
 
@@ -66,8 +72,10 @@ export class CheckListComponent implements OnInit, OnDestroy {
     this.checkService.getAllChecks().subscribe({
       next: (checks) => {
         this.checks = checks;
+        this.updateGroups();
+        this.applyGroupFilter();
         this.loading = false;
-        this.checkService.updateLocalCache(checks); // Update local cache for offline use
+        this.checkService.updateLocalCache(checks);
       },
       error: (err) => {
         this.error = 'Failed to load checks. Please try again.';
@@ -83,74 +91,74 @@ export class CheckListComponent implements OnInit, OnDestroy {
     });
   }
 
+  updateGroups(): void {
+    this.groups = [...new Set(this.checks.map(c => c.group).filter((group): group is string => group !== undefined))];
+  }
+
+  applyGroupFilter(): void {
+    if (this.selectedGroup) {
+      this.filteredChecks = this.checks.filter(c => c.group === this.selectedGroup);
+    } else {
+      this.filteredChecks = [...this.checks];
+    }
+  }
+
+  onGroupFilterChange(group: string | null): void {
+    this.selectedGroup = group;
+    this.applyGroupFilter();
+  }
+
+  onGroupCreated(group: string): void {
+    if (!this.groups.includes(group)) {
+      this.groups.push(group);
+    }
+  }
+
   getDueChecks(): Check[] {
     const now = new Date();
-    return this.checks.filter(check => {
-      // If never checked, it's due
-      if (!check.last_checked) {
-        return true;
-      }
-
+    return this.filteredChecks.filter(check => {
+      if (!check.last_checked) return true;
       const lastChecked = new Date(check.last_checked);
-      const minutesSinceLastCheck = (now.getTime() - lastChecked.getTime()) / (1000 * 60);
-
-      return minutesSinceLastCheck >= check.periodicity;
+      const minutesSince = (now.getTime() - lastChecked.getTime()) / (1000 * 60);
+      return minutesSince >= check.periodicity;
     });
   }
 
   getUpcomingChecks(): Check[] {
-    // This returns checks that are not due yet (the opposite of isDue)
-    return this.checks.filter(check => !this.isDue(check));
+    return this.filteredChecks.filter(check => !this.isDue(check));
   }
 
   isDue(check: Check): boolean {
-    if (!check.last_checked) {
-      return true;
-    }
-
+    if (!check.last_checked) return true;
     const now = new Date();
     const lastChecked = new Date(check.last_checked);
-    const minutesSinceLastCheck = (now.getTime() - lastChecked.getTime()) / (1000 * 60);
-
-    return minutesSinceLastCheck >= check.periodicity;
+    const minutesSince = (now.getTime() - lastChecked.getTime()) / (1000 * 60);
+    return minutesSince >= check.periodicity;
   }
 
   getNextDueTime(check: Check): string {
-    if (!check.last_checked) {
-      return 'Now';
-    }
-
+    if (!check.last_checked) return 'Now';
     const lastChecked = new Date(check.last_checked);
     const nextDue = new Date(lastChecked.getTime() + check.periodicity * 60000);
     const now = new Date();
 
-    if (nextDue <= now) {
-      return 'Now';
-    }
+    if (nextDue <= now) return 'Now';
 
     const minutesRemaining = Math.floor((nextDue.getTime() - now.getTime()) / 60000);
-
-    if (minutesRemaining < 60) {
-      return `${minutesRemaining} min`;
-    } else if (minutesRemaining < 1440) { // Less than a day
-      return `${Math.floor(minutesRemaining / 60)} hr ${minutesRemaining % 60} min`;
-    } else {
-      return `${Math.floor(minutesRemaining / 1440)} days`;
-    }
+    if (minutesRemaining < 60) return `${minutesRemaining} min`;
+    if (minutesRemaining < 1440) return `${Math.floor(minutesRemaining / 60)} hr ${minutesRemaining % 60} min`;
+    return `${Math.floor(minutesRemaining / 1440)} days`;
   }
 
   recordCheck(check: Check, event: Event): void {
-    event.stopPropagation(); // Prevent navigating to detail view
+    event.stopPropagation();
 
     this.checkService.recordCheck(check._id).subscribe({
       next: (response) => {
-        // Update local check object
         check.last_checked = response.checked_at;
-
         this.toastr.success(`${check.name} marked as completed!`);
-
-        // Update local cache
         this.checkService.updateLocalCache(this.checks);
+        this.applyGroupFilter(); // update filtered view
       },
       error: (err) => {
         this.toastr.error('Failed to record check. Please try again.');
@@ -168,22 +176,24 @@ export class CheckListComponent implements OnInit, OnDestroy {
   }
 
   getLastCheckedString(check: Check): string {
-    if (!check.last_checked) {
-      return 'Never';
-    }
+    if (!check.last_checked) return 'Never';
 
     const lastChecked = new Date(check.last_checked);
     const now = new Date();
     const minutesSince = Math.floor((now.getTime() - lastChecked.getTime()) / 60000);
 
-    if (minutesSince < 1) {
-      return 'Just now';
-    } else if (minutesSince < 60) {
-      return `${minutesSince} min ago`;
-    } else if (minutesSince < 1440) { // Less than a day
-      return `${Math.floor(minutesSince / 60)} hr ago`;
-    } else {
-      return `${Math.floor(minutesSince / 1440)} days ago`;
-    }
+    if (minutesSince < 1) return 'Just now';
+    if (minutesSince < 60) return `${minutesSince} min ago`;
+    if (minutesSince < 1440) return `${Math.floor(minutesSince / 60)} hr ago`;
+    return `${Math.floor(minutesSince / 1440)} days ago`;
+  }
+
+  getPeriodLabel(check: Check): string {
+    if (!check.periodicity) return '';
+    if (check.periodicity <= 60) return 'today';
+    if (check.periodicity <= 60 * 24 * 2) return 'every 1–2 days';
+    if (check.periodicity <= 60 * 24 * 7) return 'this week';
+    if (check.periodicity <= 60 * 24 * 14) return 'every 2 weeks';
+    return 'less frequent';
   }
 }

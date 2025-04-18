@@ -1,0 +1,8 @@
+<mat-form-field appearance="outline" class="full-width">
+    <mat-label>Filter by Group</mat-label>
+    <mat-select [(value)]="selectedGroup" (selectionChange)="onFilterChange()">
+      <mat-option [value]="null">All Groups</mat-option>
+      <mat-option *ngFor="let group of groups" [value]="group">{{ group }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+  
